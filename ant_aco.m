@@ -15,6 +15,11 @@ cities = [cities; 0 0]; % Adding the starting point (0,0)
 nCities = size(cities, 1);
 nRealCities = nCities - 1; % Exclure la ville virtuelle pour le chemin final
 
+% Pastel colors for visualization
+cityColor = [0.3 0.5 0.8];
+startColor = [0.2 0.6 0.2];
+tourColor = [1 0.7 0.4];
+
 
 % Distance matrix
 distMatrix = zeros(nCities, nCities);
@@ -42,6 +47,7 @@ end
 % Initialize best solution
 bestTour = [];
 bestTourLength = inf;
+bestLengthHistory = zeros(nIterations,1); % Pour le suivi de la meilleure distance
 
 for iter = 1:nIterations
     % Initialize ants
@@ -88,6 +94,7 @@ for iter = 1:nIterations
             bestTour = tour;
         end
     end
+    bestLengthHistory(iter) = bestTourLength; % Sauvegarde de la meilleure distance
 
     % Pheromone evaporation
     tau = (1 - rho) * tau;
@@ -114,13 +121,24 @@ disp(['Best tour length: ', num2str(bestTourLength)]);
 
 % Affichage graphique du meilleur chemin
 figure;
-plot(cities(:,1), cities(:,2), 'ro', 'MarkerSize', 10, 'LineWidth', 2);
 hold on;
+scatter(cities(1:nRealCities,1), cities(1:nRealCities,2), 60, 'o', 'MarkerEdgeColor', cityColor, 'MarkerFaceColor', cityColor, 'LineWidth', 1.5);
+scatter(cities(nCities,1), cities(nCities,2), 100, 'o', 'MarkerEdgeColor', startColor, 'MarkerFaceColor', startColor, 'LineWidth', 2);
 % Chemin complet : (0,0) -> villes -> (0,0)
 plot([cities(nCities,1); cities(bestTour,1); cities(nCities,1)], ...
-     [cities(nCities,2); cities(bestTour,2); cities(nCities,2)], 'b-', 'LineWidth', 2);
+     [cities(nCities,2); cities(bestTour,2); cities(nCities,2)], '-', ...
+     'Color', tourColor, 'LineWidth', 2);
 title('Best Tour Found');
 xlabel('X');
 ylabel('Y');
 grid on;
+% legend({'Cities','Start/End (0,0)','Best Tour'}, 'Location', 'best');
 hold off;
+
+% Affichage de la meilleure distance en fonction des itérations
+figure;
+plot(1:nIterations, bestLengthHistory, 'Color', [0.5 0.7 0.9], 'LineWidth', 2);
+xlabel('Iteration');
+ylabel('Best Tour Length');
+title('Best Tour Length vs Iteration');
+grid on;
