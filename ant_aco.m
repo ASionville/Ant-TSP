@@ -4,7 +4,7 @@ if nargin < 8, showPlot = true; end
 if nargin < 9, configId = ''; end
 
 nCitiesTotal = size(cities, 1);
-nRealCities = nCitiesTotal - 1; % Exclure la ville virtuelle pour le chemin final
+nRealCities = nCitiesTotal - 1; % Exclude the virtual city for the final path
 
 % Pastel colors for visualization
 cityColor = [0.3 0.5 0.8];
@@ -19,7 +19,7 @@ for i = 1:nCitiesTotal
     end
 end
 
-% Intensity of pheromones
+% Pheromone intensity
 tau = ones(nCitiesTotal, nCitiesTotal);
 
 % Heuristic information (inverse of distance)
@@ -27,7 +27,11 @@ eta = zeros(nCitiesTotal, nCitiesTotal);
 for i = 1:nCitiesTotal
     for j = 1:nCitiesTotal
         if i ~= j
-            eta(i,j) = 1 / distMatrix(i,j);
+            if distMatrix(i,j) == 0
+                eta(i,j) = 1e6; % If two cities have the same coordinates, very high heuristic but not infinite
+            else
+                eta(i,j) = 1 / distMatrix(i,j);
+            end
         else % Avoid division by zero
             eta(i,j) = 0;
         end
@@ -45,8 +49,8 @@ for iter = 1:nIterations
 
     for ant = 1:nAnts
         visited = false(1, nCitiesTotal);
-        visited(nCitiesTotal) = true; % Ville virtuelle (0,0) visitée
-        currentCity = nCitiesTotal; % Commencer à (0,0)
+        visited(nCitiesTotal) = true; % Virtual city (0,0) is visited
+        currentCity = nCitiesTotal; % Start at (0,0)
         tour = zeros(1, nRealCities);
 
         tourLength = 0;
@@ -68,7 +72,7 @@ for iter = 1:nIterations
             tourLength = tourLength + distMatrix(currentCity, nextCity);
             currentCity = nextCity;
         end
-        % Retour à (0,0)
+        % Return to (0,0)
         tourLength = tourLength + distMatrix(currentCity, nCitiesTotal);
 
         all_tours(ant, :) = tour;
@@ -97,7 +101,7 @@ for iter = 1:nIterations
 end
 
 if showPlot
-    % Affichage graphique du meilleur chemin
+    % Plot the best path
     figure;
     hold on;
     scatter(cities(1:nRealCities,1), cities(1:nRealCities,2), 60, 'o', 'MarkerEdgeColor', cityColor, 'MarkerFaceColor', cityColor, 'LineWidth', 1.5);
@@ -111,7 +115,7 @@ if showPlot
     grid on;
     hold off;
 
-    % Affichage de la meilleure distance en fonction des itérations
+    % Plot the best distance as a function of iterations
     figure;
     plot(1:nIterations, bestLengthHistory, 'Color', [0.5 0.7 0.9], 'LineWidth', 2);
     xlabel('Iteration');

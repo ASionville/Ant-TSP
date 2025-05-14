@@ -5,7 +5,9 @@ config;
 % If user want to specify cities, set use_random_cities to false
 % and cities to the desired coordinates.
 use_random_cities = false;
-cities = [1 1; 1 -1; 0 -1; 0 1];
+cities = [1 -1  1 -1       1    1 1;
+          1  1 -0.8 -0.8  -0.8  1 1];
+cities = cities';
 
 params = {cfg.nAnts, cfg.nIterations, cfg.alpha, cfg.beta, cfg.rho, cfg.Q, cfg.nCities, cfg.seed};
 [paramGrid{1:numel(params)}] = ndgrid(params{:});
@@ -47,7 +49,7 @@ for i = 1:nRuns
             error('Cities must be specified when use_random_cities is false.');
         end
         cities = [cities; 0 0]; % Ajouter (0,0)
-        nCities = size(cities, 1);
+        nCities = size(cities, 1); 
     end
 
     configId = sprintf('Run %d/%d: nAnts=%d, nIterations=%d, alpha=%.2f, beta=%.2f, rho=%.2f, Q=%.2f, nCities=%d, seed=%d', ...
