@@ -1,7 +1,9 @@
-function [bestTour, bestTourLength, bestLengthHistory] = ant_aco(nAnts, nIterations, alpha, beta, rho, Q, cities, showPlot, configId)
+function [bestTour, bestTourLength, bestLengthHistory] = ant_aco(nAnts, maxIterations, alpha, beta, rho, Q, cities, showPlot, configId, patience, minImprovement)
 % Ant Colony Optimization for the Traveling Salesman Problem (TSP)
 if nargin < 8, showPlot = true; end
 if nargin < 9, configId = ''; end
+if nargin < 10, patience = 20; end
+if nargin < 11, minImprovement = 1e-6; end
 
 nCitiesTotal = size(cities, 1);
 nRealCities = nCitiesTotal - 1; % Exclude the virtual city for the final path
@@ -41,13 +43,17 @@ end
 % Initialize best solution
 bestTour = [];
 bestTourLength = inf;
-bestLengthHistory = zeros(nIterations,1);
+bestLengthHistory = zeros(maxIterations,1);
 
-for iter = 1:nIterations
+% Early stopping parameters
+no_improve_count = 0;
+last_best = inf;
+
+for iter = 1:maxIterations
     all_tours = zeros(nAnts, nRealCities);
     all_lengths = zeros(nAnts, 1);
 
-    for ant = 1:nAnts
+    parfor ant = 1:nAnts
         visited = false(1, nCitiesTotal);
         visited(nCitiesTotal) = true; % Virtual city (0,0) is visited
         currentCity = nCitiesTotal; % Start at (0,0)
@@ -77,13 +83,26 @@ for iter = 1:nIterations
 
         all_tours(ant, :) = tour;
         all_lengths(ant) = tourLength;
-
-        if tourLength < bestTourLength
-            bestTourLength = tourLength;
-            bestTour = tour;
-        end
+    end
+    % Trouver la meilleure tournée de cette itération
+    [minLength, minIdx] = min(all_lengths);
+    if minLength < bestTourLength - minImprovement
+        bestTourLength = minLength;
+        bestTour = all_tours(minIdx, :);
     end
     bestLengthHistory(iter) = bestTourLength;
+
+    % Early stopping check
+    if bestTourLength < last_best - minImprovement
+        no_improve_count = 0;
+        last_best = bestTourLength;
+    else
+        no_improve_count = no_improve_count + 1;
+    end
+    if no_improve_count >= patience
+        bestLengthHistory = bestLengthHistory(1:iter);
+        break;
+    end
 
     % Pheromone evaporation
     tau = (1 - rho) * tau;
@@ -117,7 +136,7 @@ if showPlot
 
     % Plot the best distance as a function of iterations
     figure;
-    plot(1:nIterations, bestLengthHistory, 'Color', [0.5 0.7 0.9], 'LineWidth', 2);
+    plot(1:length(bestLengthHistory), bestLengthHistory, 'Color', [0.5 0.7 0.9], 'LineWidth', 2);
     xlabel('Iteration');
     ylabel('Best Tour Length');
     title(['Best Tour Length vs Iteration - ' configId]);
