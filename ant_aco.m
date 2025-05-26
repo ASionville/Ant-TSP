@@ -83,8 +83,7 @@ for iter = 1:maxIterations
 
         all_tours(ant, :) = tour;
         all_lengths(ant) = tourLength;
-    end
-    % Trouver la meilleure tournée de cette itération
+    end    % Find the best tour of this iteration
     [minLength, minIdx] = min(all_lengths);
     if minLength < bestTourLength - minImprovement
         bestTourLength = minLength;

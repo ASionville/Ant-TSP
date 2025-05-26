@@ -2,7 +2,7 @@ clear; clc; close all;
 
 config;
 
-% If user want to specify cities, set use_random_cities to false
+% If user wants to specify cities, set use_random_cities to false
 % and cities to the desired coordinates.
 use_random_cities = true;
 cities = [1 -1  1 -1       1    1 1;
@@ -32,25 +32,24 @@ for i = 1:nRuns
     rho        = paramComb(i,5);
     Q          = paramComb(i,6);
     nCities    = paramComb(i,7);
-    seed       = paramComb(i,8);
-    patience   = paramComb(i,9);
+    seed       = paramComb(i,8);    patience   = paramComb(i,9);
     minImprovement = paramComb(i,10);
 
     if use_random_cities
-        % Générer la liste des villes seulement si seed ou nCities change
+        % Generate city list only if seed or nCities changes
         if isempty(cities) || seed ~= lastSeed || nCities ~= lastNCities
             rng(seed);
             cities = -10 + 20 * rand(nCities, 2);
-            cities = [cities; 0 0]; % Ajouter (0,0)
+            cities = [cities; 0 0]; % Add (0,0)
             lastSeed = seed;
             lastNCities = nCities;
         end
     else
-        % Utiliser les villes spécifiées par l'utilisateur
+        % Use user-specified cities
         if isempty(cities)
             error('Cities must be specified when use_random_cities is false.');
         end
-        cities = [cities; 0 0]; % Ajouter (0,0)
+        cities = [cities; 0 0]; % Add (0,0)
         nCities = size(cities, 1); 
     end
 
@@ -64,18 +63,16 @@ for i = 1:nRuns
             case 'all'
                 showPlot = true;
             case 'best'
-                showPlot = false; % Sera affiché après la boucle
+                showPlot = false; % Will be displayed after the loop
             case 'none'
                 showPlot = false;
         end
     end
 
-    [bestTour, bestTourLength, bestLengthHistory] = ant_aco(nAnts, maxIterations, alpha, beta, rho, Q, cities, showPlot, configId, patience, minImprovement);
-
-    % Affichage du résultat dans la console
+    [bestTour, bestTourLength, bestLengthHistory] = ant_aco(nAnts, maxIterations, alpha, beta, rho, Q, cities, showPlot, configId, patience, minImprovement);    % Display result in console
     disp(['Best tour length: ', num2str(bestTourLength)]);
 
-    % Mise à jour du meilleur résultat global
+    % Update best overall result
     if bestTourLength < bestOverallLength
         bestOverallLength = bestTourLength;
         bestOverallTour = bestTour;
@@ -86,7 +83,7 @@ for i = 1:nRuns
     end
 end
 
-% Affichage du meilleur résultat global et des paramètres associés
+% Display best overall result and associated parameters
 fprintf('\n=== BEST OVERALL SOLUTION ===\n');
 disp('Best overall tour (city indices):');
 disp(bestOverallTour);
@@ -101,7 +98,7 @@ disp(['nAnts = ', num2str(bestOverallParams(1)), ...
       ', nCities = ', num2str(bestOverallParams(7)), ...
       ', seed = ', num2str(bestOverallParams(8))]);
 
-% Affichage du plot pour la meilleure config si demandé
+% Display plot for best config if requested
 if isfield(cfg, 'visualization') && strcmpi(cfg.visualization, 'best')
     nAnts      = bestOverallParams(1);
     maxIterations= bestOverallParams(2);
@@ -109,7 +106,7 @@ if isfield(cfg, 'visualization') && strcmpi(cfg.visualization, 'best')
     beta       = bestOverallParams(4);
     rho        = bestOverallParams(5);
     Q          = bestOverallParams(6);
-    % nCities    = bestOverallParams(7); % déjà inclus dans bestOverallCities
+    % nCities    = bestOverallParams(7); % already included in bestOverallCities
     % seed       = bestOverallParams(8);
     ant_aco(nAnts, maxIterations, alpha, beta, rho, Q, bestOverallCities, true, bestOverallId, cfg.patience, cfg.minImprovement);
 end
